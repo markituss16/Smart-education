@@ -1,0 +1,81 @@
+[
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_score",
+				"type": "string"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "score",
+				"type": "string"
+			}
+		],
+		"name": "NewScore",
+		"type": "event"
+	},
+	{
+		"inputs": [],
+		"name": "getAllScores",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "score",
+						"type": "string"
+					},
+					{
+						"internalType": "address",
+						"name": "from",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "datetime",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct ExamContract.Exam[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_newScore",
+				"type": "string"
+			}
+		],
+		"name": "sendScore",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+]
