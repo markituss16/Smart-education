@@ -103,6 +103,8 @@
 <script lang="ts">
 import { defineComponent, ref } from "vue";
 import firebase from 'firebase';
+import { ethers } from 'ethers';
+import UserContract from '../../artifacts/contracts/User.sol/UserContract.json';
 
 export default defineComponent({
     name: "LoginView",
@@ -119,14 +121,16 @@ export default defineComponent({
             role: ref(),
             cannotRegister: ref(false),
             db: ref(firebase.firestore()),
-            uid: ref()
+            uid: ref(),
+            numABI: ref(UserContract),
+            numContract: ref("0xdeB972c5e7826bBeF4277a18A726ef6a8E1Edd10")
         }
     },
     methods: {
         createAccount() {
             firebase.auth().createUserWithEmailAndPassword(this.address, this.password)
             .then(() => {
-                firebase.auth().onAuthStateChanged((user) => { if (user) {this.addUserDatabase(user.uid)}});            
+                firebase.auth().onAuthStateChanged((user) => { if (user) {this.addUserDatabase(user.uid)}});    
             })
             .catch(error => {
                 console.log(error.code)
@@ -137,11 +141,40 @@ export default defineComponent({
             this.db.collection("users").doc(uid)
             .set({name: this.name, surname: this.surname, course: this.course, phone: this.phone, emailAddress: this.address, username: this.username, role: this.role})
             .then(() => {
+                this.performSubmit();
                 this.$router.push({ path: "/login" });
             })
             .catch((error) => {
                 console.error("Error writing document: ", error);
             });
+        },
+        async performSubmit() {
+            const accounts = await (window as any).ethereum.request({ method: 'eth_requestAccounts' })
+            this.address = accounts[0];
+
+            this.performUserRegistration(this.address)
+        },
+
+        async performUserRegistration(address: any) {
+            const provider = new ethers.providers.Web3Provider((window as any).ethereum);
+            const numberContract = new ethers.Contract(this.numContract, this.numABI, provider.getSigner())
+
+            try {
+                const transaction = await numberContract.registerScore(this.name, this.surname, this.course, this.address, this.role,
+                    {
+                        from: address,
+                        gasLimit: 800000
+                    },
+                );
+
+                console.log('transaction :>> ', transaction);
+                // wait for the transaction to actually settle in the blockchain
+                await transaction.wait();
+                //this.getMessages();
+            } catch (error) {
+                console.error(error);
+               // trxInProgress.value = false;
+            }
         }
     },
 });

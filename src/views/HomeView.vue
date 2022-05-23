@@ -25,8 +25,8 @@
     </Disclosure>
     <div class="pb-5 border-b border-gray-200 sm:flex sm:items-center sm:justify-between max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
       <h1 class="text-3xl font-bold text-gray-900">Inici</h1>
-      <div v-if="user_role && user_role === 'teacher'" class="mt-3 sm:mt-0 sm:ml-4">
-        <button type="button" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-700 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">Nou examen</button>
+      <div @click="this.$router.push({ path: '/teacher' });" v-if="user_role && user_role === 'teacher'" class="mt-3 sm:mt-0 sm:ml-4">
+        <button type="button" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-700 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">Àrea del professor/a</button>
       </div>
     </div>
     <main>
@@ -35,17 +35,15 @@
         <div v-if="!isLoggedIn" class="px-4 py-6 sm:px-0">
           <div v-if="isMetaMaskSupported">
             <div class="rounded-lg bg-gray-200 overflow-hidden shadow divide-y divide-gray-200 sm:divide-y-0 sm:grid sm:grid-cols-2 sm:gap-px">
-              <div @click="connectWallet(exam.examTitle)" v-for="exam in exams" :key="exam.exam_title" class="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500">
+              <div @click="connectWallet(exam[1])" v-for="exam in exams" :key="exam.exam_title" class="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500">
                 <div class="mt-8">
                   <h3 class="text-lg font-medium">
                     <a class="focus:outline-none">
                       <!-- Extend touch target to entire panel -->
                       <span class="absolute inset-0" aria-hidden="true" />
-                      {{exam.examTitle}}
+                      {{exam[1]}}
                     </a>
-                  </h3>
-                  <p class="mt-2 text-sm text-gray-500">{{exam.examDescription}}</p>
-                  
+                  </h3>                  
                 </div>
                 <span class="pointer-events-none absolute top-6 right-6 text-gray-300 group-hover:text-gray-400" aria-hidden="true">
                   <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
@@ -70,7 +68,8 @@
 import { defineComponent, ref } from 'vue';
 import { Disclosure } from '@headlessui/vue'
 import firebase from 'firebase'
-//import Web3 from 'web3';
+import { ethers } from 'ethers';
+import ExamContract from '../../artifacts/contracts/Exam.sol/ExamContract.json';
 
 const navigation = [
   { name: 'Inici', current: true },
@@ -90,7 +89,9 @@ export default defineComponent({
       db: ref(firebase.firestore()),
       isLoggedIn: ref(false),
       user_role: ref(),
-      exams: ref(new Array())
+      exams: ref(new Array()),
+      numABIExam: ref(ExamContract),
+      numContractExam: ref("0xc60D594d73326824d14Cf55c79D6a114EAea3977"),    
     }
   },
   created() {
@@ -129,7 +130,22 @@ export default defineComponent({
       const accounts = await (window as any).ethereum.request({ method: 'eth_accounts' });
       this.address = accounts[0];
     },
-    getExams() {
+
+    async getExams() {
+        const provider = new ethers.providers.Web3Provider((window as any).ethereum);
+        const numberContract = new ethers.Contract(this.numContractExam, this.numABIExam, provider.getSigner())
+
+        const aa = await numberContract.totalExams()      
+        if (aa.toNumber() > 0) {
+            for (var i=1; i<=aa.toNumber(); i++) {
+                numberContract.getExamById(i).then((response: any) => {
+                    this.exams.push(response)
+                    console.log(this.exams)
+                })
+            } // end for
+        } // end if
+      },
+    /*getExams() {
       this.db.collection("exams")
       .get()
       .then((querySnapshot) => {
@@ -143,7 +159,7 @@ export default defineComponent({
       .catch((error) => {
         console.log("Error getting documents: ", error);
       });
-    }
+    },*/
   }
 });
 </script>

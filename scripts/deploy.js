@@ -10,13 +10,19 @@ const main = async () => {
   const examContractFactory = await hre.ethers.getContractFactory(
     'ExamContract'
   );
+  const userContractFactory = await hre.ethers.getContractFactory(
+    'UserContract'
+  );
   // triggers deployment
   const examContract = await examContractFactory.deploy({});
+  const userContract = await userContractFactory.deploy({});
 
   // wait for deployment to finish
   await examContract.deployed();
+  await userContract.deployed();
 
   console.log('ExamNumber contract address: ', examContract.address);
+  console.log('Number contract address: ', userContract.address);
 };
 
 const runMain = async () => {

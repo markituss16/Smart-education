@@ -3,7 +3,7 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 import firebase from 'firebase';
-
+import 'jquery';
 import './index.css'
 
 // Your web app's Firebase configuration
